@@ -26,8 +26,11 @@ public class TranslationInetractor implements Callback<TranslationResponse> {
     }
 
     public void loadNetworkReq(String text){
-        this.text=text;
-        service.getTranslation(Constant.KEY,"en-bn",text,"plain").enqueue(this);
+
+            this.text=text;
+            service.getTranslation(Constant.KEY,"en-bn",text,"plain").enqueue(this);
+
+
     }
     @Override
     public void onResponse(Call<TranslationResponse> call, Response<TranslationResponse> response) {

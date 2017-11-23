@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.GsonBuilder;
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = "MainActivity";
     private MainPresenter mainPresenter;
     private ClipboardManager clipboard;
+    private TextView tvHistory;
+    private String history="History : ";
+    private String queryText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +63,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        tvHistory=(TextView)findViewById(R.id.tvHistory);
         mainPresenter=new MainPresenter(this);
          clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
         clipboard.addPrimaryClipChangedListener(this);
@@ -79,6 +84,12 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "onFailure() called with: call = [" + call + "], t = [" + t + "]");
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        tvHistory.setText(history);
     }
 
     @Override
@@ -138,8 +149,10 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+
     @Override
     public void onCompleteTransLation(String text, String meaningText) {
+        history=history+"\n"+text+" : "+meaningText+"\n";
         Toast.makeText(getBaseContext(),text+":"+meaningText,Toast.LENGTH_LONG).show();
     }
 
@@ -150,8 +163,13 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onPrimaryClipChanged() {
-        String a = clipboard.getText().toString();
-        Log.d(TAG, "onPrimaryClipChanged() called"+"Copy:\n"+a);
-        mainPresenter.translateWord(a);
+        String a=clipboard.getText().toString();
+        if(queryText!=null&&!this.queryText.equals(a)){
+            mainPresenter.translateWord(a);
+        }else if(queryText==null){
+            mainPresenter.translateWord(a);
+        }
+        queryText = a;
+        Log.d(TAG, "onPrimaryClipChanged() called"+"Copy:\n"+this.queryText);
     }
 }
