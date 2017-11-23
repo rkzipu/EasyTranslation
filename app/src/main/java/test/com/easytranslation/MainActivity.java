@@ -17,9 +17,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.gson.GsonBuilder;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import test.com.easytranslation.api.endpoint.ITranslateEnpoint;
+import test.com.easytranslation.home.MainContract;
+import test.com.easytranslation.home.model.TranslationResponse;
+import test.com.easytranslation.home.presenter.MainPresenter;
+
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,MainContract.HomeView,ClipboardManager.OnPrimaryClipChangedListener {
     private static final String TAG = "MainActivity";
+    private MainPresenter mainPresenter;
+    private ClipboardManager clipboard;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,12 +59,24 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        final ClipboardManager clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
-        clipboard.addPrimaryClipChangedListener( new ClipboardManager.OnPrimaryClipChangedListener() {
-            public void onPrimaryClipChanged() {
-                String a = clipboard.getText().toString();
-                Log.d(TAG, "onPrimaryClipChanged() called"+"Copy:\n"+a);
-                Toast.makeText(getBaseContext(),"Copy:\n"+a,Toast.LENGTH_LONG).show();
+        mainPresenter=new MainPresenter(this);
+         clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.addPrimaryClipChangedListener(this);
+    }
+
+    private void networkCall() {
+        Retrofit retrofit=new Retrofit.Builder().baseUrl(Constant.BASE_URL).addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create())).build();
+        retrofit.create(ITranslateEnpoint.class).getTranslation(Constant.KEY,"en-bn","can","plain").enqueue(new Callback<TranslationResponse>() {
+            @Override
+            public void onResponse(Call<TranslationResponse> call, Response<TranslationResponse> response) {
+                if(response.code()==200){
+                    Log.d(TAG, "onResponse()  response = [" + response.body().getText().get(0) + "]");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TranslationResponse> call, Throwable t) {
+                Log.d(TAG, "onFailure() called with: call = [" + call + "], t = [" + t + "]");
             }
         });
     }
@@ -110,5 +136,22 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onCompleteTransLation(String text, String meaningText) {
+        Toast.makeText(getBaseContext(),text+":"+meaningText,Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onFailure(String msg) {
+        Toast.makeText(getBaseContext(),msg,Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPrimaryClipChanged() {
+        String a = clipboard.getText().toString();
+        Log.d(TAG, "onPrimaryClipChanged() called"+"Copy:\n"+a);
+        mainPresenter.translateWord(a);
     }
 }
