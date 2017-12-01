@@ -2,6 +2,7 @@ package test.com.easytranslation;
 
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -29,6 +30,8 @@ import test.com.easytranslation.api.endpoint.ITranslateEnpoint;
 import test.com.easytranslation.home.MainContract;
 import test.com.easytranslation.home.model.TranslationResponse;
 import test.com.easytranslation.home.presenter.MainPresenter;
+import test.com.easytranslation.intro.PrefManager;
+import test.com.easytranslation.intro.WelcomeActivity;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,MainContract.HomeView,ClipboardManager.OnPrimaryClipChangedListener {
@@ -67,6 +70,7 @@ public class MainActivity extends AppCompatActivity
         mainPresenter=new MainPresenter(this);
          clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
         clipboard.addPrimaryClipChangedListener(this);
+
     }
 
     private void networkCall() {
