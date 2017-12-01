@@ -71,8 +71,35 @@ public class MainActivity extends AppCompatActivity
          clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
         clipboard.addPrimaryClipChangedListener(this);
 
+        handleIntent();
     }
 
+    private void handleIntent() {
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                handleSendText(intent); // Handle text being sent
+            }
+        } else {
+            // Handle other intents, such as being started from the home screen
+        }
+
+
+
+
+    }
+    void handleSendText(Intent intent) {
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText != null) {
+            if (mainPresenter != null) {
+                mainPresenter.translateWord(sharedText);
+            }
+            // Update UI to reflect text being shared
+        }
+    }
     private void networkCall() {
         Retrofit retrofit=new Retrofit.Builder().baseUrl(Constant.BASE_URL).addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create())).build();
         retrofit.create(ITranslateEnpoint.class).getTranslation(Constant.KEY,"en-bn","can","plain").enqueue(new Callback<TranslationResponse>() {
